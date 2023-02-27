@@ -43,8 +43,6 @@ for l in levels[0]:
 '''
 
 
-#K2 = K1 = K0 = np.zeros((8,8))
-
 z2 = np.zeros((2,2))
 z4 = np.zeros((4,4))
 i2 = np.identity(2)

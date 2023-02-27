@@ -32,16 +32,6 @@ class Main:
         l = 3
         covMat = np.exp(-(covMat**2)/(l**2))
 
-        covMat = np.array([[1., 0.64, 0.57, 0.89, 0.41, 0.64, 0.01, 0.02],
-                           [0.64, 1., 0.89, 0.57, 0.64, 0.41, 0.11, 0.15],
-                           [0.57, 0.89, 1., 0.64, 0.89, 0.57, 0.15, 0.17],
-                           [0.89, 0.57, 0.64, 1., 0.57, 0.89, 0.02, 0.02],
-                           [0.41, 0.64, 0.89, 0.57, 1., 0.64, 0.17, 0.15],
-                           [0.64, 0.41, 0.57, 0.89, 0.64, 1., 0.02, 0.02],
-                           [0.01, 0.11, 0.15, 0.02, 0.17, 0.02, 1., 0.89],
-                           [0.02, 0.15, 0.17, 0.02, 0.15, 0.02, 0.89, 1.],
-                           ])
-
         # display covMat
         #plt.matshow(covMat)
         #plt.show()
@@ -49,21 +39,19 @@ class Main:
         # build hodlr
         approx = False
         hodlr, root, points = b.buildHodlr(self.data, self.k, 16, covMat, approx)
-        print(hodlr.printTree(root))
+        #print(hodlr.printTree(root))
 
 
 
 
 
         np.set_printoptions(suppress=True)
-        print(covMat.round(2))
-        #s = SolveForX()
+        s = SolveForX()
         b = np.arange(len(covMat))
-        #s.factor(root, 1)
-        #Ks = s.getKs()
-        print(b)
+        x = s.solveForX_bruteForce(covMat, b, root)
+
         test = np.linalg.solve(covMat, b)
-        print(test.round(2))
+        print((test-x).round(2))
 
 
 
