@@ -4,6 +4,13 @@ from solveForX import SolveForX
 from tools import Tools
 from numpy.linalg import inv
 
+def sherWood(U, Vt, I):
+    #i8 + K1i @ (K2i @ K0)
+    #x = b - (U @ inv(I + Vt@U) @ Vt @ b)
+    inverse = I - (U @ inv(I + Vt@U) @ Vt)
+    # K0 after factoring
+    return inverse
+
 covMat = np.array([[1., 0.64, 0.57, 0.89, 0.41, 0.64, 0.01, 0.02],
                    [0.64, 1., 0.89, 0.57, 0.64, 0.41, 0.11, 0.15],
                    [0.57, 0.89, 1., 0.64, 0.89, 0.57, 0.15, 0.17],
@@ -84,9 +91,21 @@ K1 = t.buildBlock(a, z4, z4, d)
 
 # multiply by inverse of K2 as if we had factored K2 out
 K1_after_factoring = i8 + K2i@K1
-K1i = inv(K1_after_factoring)
+#K1i = inv(K1_after_factoring)
+#b1 = K1i@b2
 
+#print(K1i.round(2))
+
+
+'''' SHERMAN EXPERIEMENT '''
+
+# U, Vt, b, I
+K1i = sherWood(K2i, K1, i8)
+#print((test_K1i - K1i).round(2))
 b1 = K1i@b2
+
+''''SHERMAN EXPERIEMENT '''
+
 
 #print(K1_after_factoring.round(2))
 #print(b1.round(2))
@@ -106,47 +125,25 @@ K0 = t.buildBlock(z4, uppR, lowL, z4)
 
 # multiply by inverse of K2 as if we had factored K2 out
 K0_after_factoring = i8 + K1i@(K2i@K0)
-K0i = inv(K0_after_factoring)
+#K0i = inv(K0_after_factoring)
+
+'''' SHERMAN EXPERIEMENT '''
+
+# U, Vt, b, I
+#K1_after_factoring = i8 + K2i@K1
+K0i = sherWood(K1i, K2i@K0, i8)
+#print((test_K0i - K0i).round(2))
+
+''''SHERMAN EXPERIEMENT '''
 
 b0 = K0i@b1
 
-#print(K0_after_factoring.round(2))
-print(b0)
 
 x = np.array([-26.79183204,  25.88875213, -48.04235809,  39.31662254,  26.06864796, -12.89726922,  -4.34186584 , 11.24530103])
-
-#LHS = K2i@(K2+K1+K0)@x
-#print('updated')
-A1 = i8 + K2i@K1
-# A1 = K1_after_factoring
-A0 = K2i@K0
-# Aa = K0_after_factoring
-#LHS = K1i@(K1_after_factoring+A0)@x
-LHS = (i8 + K1i@A0)@x
-RHS = K1i@K2i@b
-#print(LHS.round(2))
-#print(RHS.round(2))
-rebuilt = inv(K2+K1+K0)@b
 
 #print(rebuilt.round(2))
 
 test = np.linalg.solve(covMat, b)
-print(test)
+#print(test)
 print((test-b0).round(2))
 
-
-
-def rebuild():
-    z = np.zeros()
-
-
-def factor(mat):
-
-    n = len(mat)
-    m = 2
-    z = np.zeros((1,2))
-    print(z)
-
-    return K2
-
-#print(factor(covMat))
