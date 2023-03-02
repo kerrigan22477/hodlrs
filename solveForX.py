@@ -24,8 +24,8 @@ class SolveForX:
             A = root.value
             U1, S1, VT1, U2, S2, VT2 = A[0], A[1], A[2], A[3], A[4], A[5]
 
-            #upperRight = (U1.dot(S1)).dot(VT1)
-            #lowerLeft = (U2.dot(S2)).dot(VT2)
+            #uR = (U1.dot(S1)).dot(VT1)
+            #lL= (U2.dot(S2)).dot(VT2)
             upperRight = [U1, S1, VT1]
             lowerLeft = [U2, S2, VT2]
 
@@ -41,7 +41,7 @@ class SolveForX:
             except KeyError:
                 self.Ks[level] = [full_matrix]
 
-    def solveForX_bruteForce(self, covMat, b, root):
+    def solveForX_bruteForce(self, n, b, root):
         t = Tools()
         self.factor(root, 0)
         levels = self.Ks
@@ -57,7 +57,7 @@ class SolveForX:
 
         K2 = t.buildBlock(a, z4, z4, d)
 
-        b = np.arange(len(covMat)).T
+        b = np.arange(n).T
 
         # invert and solve
         K2i = inv(K2)
@@ -117,51 +117,14 @@ class SolveForX:
 
         return b0
 
-    def solveForX(self, covMat, b, root, level):
+    def solveForX(self, b, root, level):
         t = Tools()
 
-
         # PART 2 aka the nodes is a mess fix this later
-        # if NOT a Leaf
-        if root.left is not None:
-            K = root.value
-            U1, S1, VT1, U2, S2, VT2 = K[0], K[1], K[2], K[3], K[4], K[5]
-
-            upperRight = (U1.dot(S1)).dot(VT1)
-            lowerLeft = (U2.dot(S2)).dot(VT2)
-
-            z = np.zeros((4,4))
-
-            K = t.buildBlock(z, upperRight, lowerLeft, z)
-
-            I = np.identity((8,8))
-            # U, Vt, b, I
-            # K1_after_factoring = i8 + K2i@K1
-            Kii = self.sherWood(K1i, prev_K @ K0, I)
-            # print((test_K0i - K0i).round(2))
-
-            upperRight, ur_leftover = self.solveForX(root.left, level + 1)
-            lowerLeft, ll_leftover = self.solveForX(root.right, level + 1)
-
-            z2 = np.zeros((2,2))
-            prev_K = t.buildBlock(z2, ur_leftover, ll_leftover, z2)
-
-
-            upperRight = (U1.dot(S1)).dot(VT1)
-            lowerLeft = (U2.dot(S2)).dot(VT2)
-
-            upperLeft = self.multiply(root.left, q1)
-            lowerRight = self.multiply(root.right, q2)
-
-            u1 = upperRight + A12.dot(q2)
-            u2 = lowerLeft + A21.dot(q1)
-            self.u = np.concatenate((u1, u2), axis=0)
-
-            return self.u, Kii
-
-        # if LEAF
-        else:
+        # if a Leaf
+        if root.left is None:
             full_matrix = root.value
+
             # invert and solve
             Kni = inv(full_matrix)
 
@@ -171,7 +134,42 @@ class SolveForX:
 
             b1 = K11.dot(b1) + K12.dot(b2)
             b2 = K22.dot(b2) + K21.dot(b1)
+
             self.b = np.concatenate((b1, b2), axis=0)
+
             return self.b, Kni
+
+        # if NOT LEAF
+        else:
+            b1, b2 = t.splitQ(b)
+            x1, upperLeft_old = self.solveForX(b1, root.left, level - 1)
+            x2, lowerRight_old = self.solveForX(b2, root.right, level - 1)
+
+
+            K1 = root.value
+            U1, S1, VT1, U2, S2, VT2 = K1[0], K1[1], K1[2], K1[3], K1[4], K1[5]
+
+            upperRight = (U1.dot(S1)).dot(VT1)
+            lowerLeft = (U2.dot(S2)).dot(VT2)
+            z = np.zeros((level*2,level*2))
+
+
+            K1 = t.buildBlock(z, upperRight, lowerLeft, z)
+
+            prev_K = t.buildBlock(upperLeft_old, z, z, lowerRight_old)
+
+            I = np.identity(level*4)
+            # U, Vt, b, I
+            # i8 + K1i @ (K2i @ K0)
+            K1i = self.sherWood(prev_K, K1, I)
+
+            K12, K21, K11, K22 = t.splitAi(K1i)
+
+            u1 = x1 + K12.dot(b2)
+            u2 = x2 + K21.dot(b1)
+            self.u = np.concatenate((u1, u2), axis=0)
+
+            return self.u, K1i
+
 
 

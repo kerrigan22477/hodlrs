@@ -43,16 +43,15 @@ class Main:
 
 
 
-
-
         np.set_printoptions(suppress=True)
         s = SolveForX()
         b = np.arange(len(covMat))
-        x = s.solveForX_bruteForce(covMat, b, root)
+        x = s.solveForX_bruteForce(len(covMat), b, root)
+        y, Kli = s.solveForX(b, root, 2)
 
         test = np.linalg.solve(covMat, b)
-        print((test-x).round(2))
-
+        print((test-y).round(2))
+        print(y.round(2))
 
 
 if __name__ == "__main__":
