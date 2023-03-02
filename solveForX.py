@@ -6,7 +6,7 @@ from BST import Node, Leaf
 class SolveForX:
     def __init__(self):
         self.Ks = {}
-        self.b = []
+        self.x = []
 
     def sherWood(self, U, Vt, I):
         # i8 + K1i @ (K2i @ K0)
@@ -132,18 +132,18 @@ class SolveForX:
             K12, K21, K11, K22 = t.splitAi(Kni)
             b1, b2 = t.splitQ(b)
 
-            b1 = K11.dot(b1) + K12.dot(b2)
-            b2 = K22.dot(b2) + K21.dot(b1)
+            n_b1 = K11.dot(b1) + K12.dot(b2)
+            n_b2 = K22.dot(b2) + K21.dot(b1)
 
-            self.b = np.concatenate((b1, b2), axis=0)
+            self.x = np.concatenate((n_b1, n_b2), axis=0)
 
-            return self.b, Kni
+            return self.x, Kni, Kni
 
         # if NOT LEAF
         else:
             b1, b2 = t.splitQ(b)
-            x1, upperLeft_old = self.solveForX(b1, root.left, level - 1)
-            x2, lowerRight_old = self.solveForX(b2, root.right, level - 1)
+            x1, upperLeft_old, update_UL = self.solveForX(b1, root.left, level - 1)
+            x2, lowerRight_old, update_LR = self.solveForX(b2, root.right, level - 1)
 
 
             K1 = root.value
@@ -155,21 +155,40 @@ class SolveForX:
 
 
             K1 = t.buildBlock(z, upperRight, lowerLeft, z)
-
             prev_K = t.buildBlock(upperLeft_old, z, z, lowerRight_old)
 
             I = np.identity(level*4)
             # U, Vt, b, I
             # i8 + K1i @ (K2i @ K0)
-            K1i = self.sherWood(prev_K, K1, I)
+            update = t.buildBlock(update_UL, z, z, update_LR)
 
-            K12, K21, K11, K22 = t.splitAi(K1i)
+            if level != 1:
+                K1i = self.sherWood(prev_K, (update@K1), I)
+            else:
+                K1i = self.sherWood(prev_K, K1, I)
 
-            u1 = x1 + K12.dot(b2)
-            u2 = x2 + K21.dot(b1)
-            self.u = np.concatenate((u1, u2), axis=0)
+            if level == 2:
+                update = update * K1i
 
-            return self.u, K1i
+
+            #K12, K21, K11, K22 = t.splitAi(K1i)
+
+            '''
+            print('--------')
+            print('BBBB: ' + str(b.round(1)))
+            print(b1.round(1))
+            #print(prev_x2.round(2))
+            print('--------')
+
+            x1 = prev_x1 + K12.dot(b2)
+            x2 = prev_x2 + K21.dot(b1)
+            self.x = np.concatenate((x1, x2), axis=0)
+            print(self.x.round(1))
+            '''
+            self.x = np.concatenate((x1, x2), axis=0)
+            self.x = K1i@self.x
+
+            return self.x, K1i, update
 
 
 

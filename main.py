@@ -47,11 +47,11 @@ class Main:
         s = SolveForX()
         b = np.arange(len(covMat))
         x = s.solveForX_bruteForce(len(covMat), b, root)
-        y, Kli = s.solveForX(b, root, 2)
+        print('-----------')
+        y, Kli, update = s.solveForX(b, root, 2)
 
         test = np.linalg.solve(covMat, b)
         print((test-y).round(2))
-        print(y.round(2))
 
 
 if __name__ == "__main__":
