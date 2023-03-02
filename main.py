@@ -17,6 +17,12 @@ class Main:
     def main(self):
         b = buildHodlr()
 
+        '''self.data = np.array(
+    [[3.0, 8.0], [7.0, 8.0], [9.0, 10.0], [7.0, 10.0], [3.0, 9.0],
+     [9.0, 8.0], [7.0, 9.0], [9.0, 9.0], [0.0, 9.0], [0.0, 8.0],
+     [3.0, 7.0], [0.0, 7.0], [0.0, 9.5], [3.0, 9.5], [8.0, 8.0], [8.0, 8.5]])'''
+
+
         self.data = np.array([[3.0, 8.0], [7.0, 8.0], [9.0, 10.0], [7.0, 10.0], [3.0, 9.0], [9.0, 8.0], [7.0, 9.0], [9.0, 9.0]])
 
         # kmeans
@@ -41,16 +47,17 @@ class Main:
         hodlr, root, points = b.buildHodlr(self.data, self.k, 16, covMat, approx)
         #print(hodlr.printTree(root))
 
-
-
         np.set_printoptions(suppress=True)
         s = SolveForX()
         b = np.arange(len(covMat))
-        x = s.solveForX_bruteForce(len(covMat), b, root)
-        print('-----------')
-        y, Kli, update = s.solveForX(b, root, 2)
+        #x = s.solveForX_bruteForce(len(covMat), b, root)
+        #print('-----------')
+        max_level = np.log2(len(covMat)) - 1
+        y, Kli, update, next_update = s.solveForX(b, root, int(max_level))
 
         test = np.linalg.solve(covMat, b)
+        print(test.round(2))
+        print(y.round(2))
         print((test-y).round(2))
 
 

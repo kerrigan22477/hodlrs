@@ -66,6 +66,7 @@ class BST:
         print('-------')
 
         if type(root) is Node:
+            '''
             print('upperright')
             print('U: ' + str(root.value[0].round(2)))
             print('E: ' + str(root.value[1].round(2)))
@@ -82,7 +83,7 @@ class BST:
             print(str((U1.dot(S1)).dot(VT1).round(2)))
             print('lowerleft')
             print(str((U2.dot(S2)).dot(VT2).round(2)))
-            '''
+
         if type(root) is Leaf:
             print(root.value)
 
