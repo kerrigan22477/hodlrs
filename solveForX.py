@@ -2,6 +2,7 @@ import numpy as np
 from numpy.linalg import inv
 from tools import Tools
 from BST import Node, Leaf
+import matplotlib.pyplot as plt
 
 class SolveForX:
     def __init__(self):
@@ -56,11 +57,36 @@ class SolveForX:
 
         levels = self.Ks
 
+
+        '''
+        for x in range(len(levels[0])):
+            for i in range(3):
+                print((levels[0][x][i]).round(1))'''
+
+        '''
+        for i in range(len(levels)-1):
+            print(i)
+            print(len(levels[i]))
+            for x in range(len(levels[i])):
+                U1 = self.Ks[i][x][0]
+                S1 = self.Ks[i][x][1]
+                VT1 = self.Ks[i][x][2]
+                first = U1.dot(S1).dot(VT1)
+                print(first.round(2))
+                print('!!!!!!!!!!!!!!!!!!!!!')
+
+        print('----------')
+        for x in range(len(levels[3])):
+            print(levels[3][x])'''
+
+
         z2 = np.zeros((2, 2))
         z4 = np.zeros((4, 4))
         z8 = np.zeros((8, 8))
         i2 = np.identity(2)
+        i4 = np.identity(4)
         i8 = np.identity(8)
+        i16 = np.identity(16)
 
         # rebuild K3
         a = t.buildBlock(levels[3][0], z2, z2, levels[3][1])
@@ -76,10 +102,10 @@ class SolveForX:
         # rebuild K2
         K2_ms = self.undoSVD(2)
 
-        a = t.buildBlock(z2, K2_ms[0], K2_ms[1], z2)
-        b = t.buildBlock(z2, K2_ms[2], K2_ms[3], z2)
-        c = t.buildBlock(z2, K2_ms[4], K2_ms[5], z2)
-        d = t.buildBlock(z2, K2_ms[6], K2_ms[7], z2)
+        a = t.buildBlock(i2, K2_ms[0], K2_ms[1], i2)
+        b = t.buildBlock(i2, K2_ms[2], K2_ms[3], i2)
+        c = t.buildBlock(i2, K2_ms[4], K2_ms[5], i2)
+        d = t.buildBlock(i2, K2_ms[6], K2_ms[7], i2)
 
         K2_UL = t.buildBlock(a, z4, z4, b)
         K2_LR = t.buildBlock(c, z4, z4, d)
@@ -89,44 +115,83 @@ class SolveForX:
         #rebuild K1
         K1_ms = self.undoSVD(1)
 
-        a = t.buildBlock(z4, K1_ms[0], K1_ms[1], z4)
-        d = t.buildBlock(z4, K1_ms[2], K1_ms[3], z4)
+        a = t.buildBlock(i4, K1_ms[0], K1_ms[1], i4)
+        d = t.buildBlock(i4, K1_ms[2], K1_ms[3], i4)
 
         K1 = t.buildBlock(a, z8, z8, d)
 
         #rebuild K0
-        K0_ms = self.undoSVD(1)
-        print(K0_ms)
+        K0_ms = []
 
-        K0 = t.buildBlock(z4, K0_ms[0], K0_ms[1], z4)
-        K0 = t.buildBlock(z4, K0_ms[0], K0_ms[1], z4)
+        U1 = self.Ks[0][0][0]
+        S1 = self.Ks[0][0][1]
+        VT1 = self.Ks[0][0][2]
+        K0_ms.append(U1.dot(S1).dot(VT1))
 
-        '''
-        b = np.arange(n).T
+        U1 = self.Ks[0][1][0]
+        S1 = self.Ks[0][1][1]
+        VT1 = self.Ks[0][1][2]
+        K0_ms.append(U1.dot(S1).dot(VT1))
 
-        # invert and solve
-        K2i = inv(K2)
-        b2 = K2i @ b
+        K0 = t.buildBlock(i8, K0_ms[0], K0_ms[1], i8)
 
-        # invert and solve
-        # U, Vt, b, I
-        K1i = self.sherWood(K2i, K1, i8)
-        b1 = K1i @ b2
-
-        # invert and solve
-        # multiply by inverse of K2 as if we had factored K2 out
-        # K0 needs to have K2 factored out before we factor out K1, hence Vt = K2i@K0
-        # U, Vt, I
-        K0i = self.sherWood(K1i, K2i @ K0, i8)
         '''
         print(K3.round(1))
         print(K2.round(1))
         print(K1.round(1))
         print(K0.round(1))
+        '''
+        K = (K3@K2@K1@K0)
+
+        plt.matshow(K)
+        plt.show()
+
+        # Do maths
+        x = np.array([-372.00641187,  224.77515493 , -77.15161439 , 227.87207448, -309.25801318,
+  329.96835622,  143.92113187 ,-150.76826154,  142.3190304 , -200.70929676,
+   51.4164312 ,   60.72415455, -109.50084279 ,-110.46445274  , -5.28376826,
+  189.35892997])
+        b = np.arange(len(K0))
+        LHS = (K3+K2+K1+K0)@x
+        #print('X: ' + str(x.round(2)))
+        #print(LHS.round(2))
+       # print(b)
+
+        b0 = 0
+
+        '''
+        K3i = inv(K3)
+        b3 = K3i @ b
+
+        K2i = self.sherWood(K3i, K2, i16)
+        b2 = K2i @ b3
+
+        K1i = self.sherWood(K2i, K3i@K1, i16)
+        b1 = K1i @ b2
+
+        K0i = self.sherWood(K1i, K3i@K2i@K0, i16)
+
+        b0 = K0i @ b1
+        '''
+
+        # invert and solve
+        #K2i = inv(K2)
+        #b2 = K2i @ b
+
+        # invert and solve
+        # U, Vt, b, I
+        #K1i = self.sherWood(K2i, K1, i8)
+        #b1 = K1i @ b2
+
+        # invert and solve
+        # multiply by inverse of K2 as if we had factored K2 out
+        # K0 needs to have K2 factored out before we factor out K1, hence Vt = K2i@K0
+        # U, Vt, I
+        #K0i = self.sherWood(K1i, K2i @ K0, i8)
+
 
         #b0 = K0i @ b1
-        return 0
-        #return b0
+        return b0
 
     def solveForX(self, b, root, level):
         t = Tools()
