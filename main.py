@@ -63,7 +63,14 @@ class Main:
 
         print(y.round(2))
         print(test.round(2))
-        print((test - y).round(2))
+        print(np.log(abs(test - y)).round(2))
+
+        ex = s.solveForX16(len(covMat), b, root, test, covMat)
+
+        #print(test.round(2))
+        #print(y.round(2))
+        #print((test - ex).round(2))
+        #print(y - ex)
 
 if __name__ == "__main__":
     m = Main()
