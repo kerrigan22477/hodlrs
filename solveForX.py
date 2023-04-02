@@ -259,13 +259,20 @@ class SolveForX:
             update = t.buildBlock(update_UL, z, z, update_LR)
             next_update = t.buildBlock(next_update_UL, z, z, next_update_LR)
 
+            '''small_i = np.identity(2**level)
+            next_update = t.buildBlock(next_update_UL, small_i, small_i, next_update_LR)'''
+
             K1i = self.sherWood(prev_K, (update@K1), I)
 
             # update b w/ previous inverse matrices
             self.x = np.concatenate((x1, x2), axis=0)
             self.x = K1i@self.x
 
-            return self.x, K1i, next_update, next_update@K1i
+            #new_next_update = next_update@K1i
+            new_next_update = K1i @ next_update
+            #print(new_next_update.round(2))
+
+            return self.x, K1i, next_update, new_next_update
 
 
     def solveForX16(self, n, b, root, x, covMat):
@@ -336,14 +343,14 @@ class SolveForX:
         K = (K3 + K2 + K1 + K0)
         #K = (K3 + K2 + K1 + K0) - 3 * i16
 
-        '''print(K3.round(1))
-        print(K2.round(1))
-        print(K1.round(1))
+        #print(K3.round(1))
+        #print(K2.round(1))
+        '''print(K1.round(1))
         print(K0.round(1))'''
 
-        print((K - covMat).round(1))
+        '''print((K - covMat).round(1))
         print(K.round(1))
-        print(covMat.round(1))
+        print(covMat.round(1))'''
 
         #plt.matshow(K)
         #plt.show()
@@ -355,26 +362,56 @@ class SolveForX:
                       189.35892997])
 
         b = np.arange(len(K0))'''
-        print(x.round(2))
+        #print(x.round(2))
         #LHS = (K3 + K2 + K1 + K0) @ x
         LHS = K @ x
         b = np.arange(len(K0))
         # print('X: ' + str(x.round(2)))
-        print(LHS.round(2))
+        #print(LHS.round(2))
         #print(b.round(2))
 
         #print((covMat @ x).round(2))
 
         K3i = inv(K3)
         b3 = K3i @ b
+
+        LHS = K3i @ LHS
+
         K2i = self.sherWood(K3i, K2, i16)
         b2 = K2i @ b3
+
+        LHS = K2i @ LHS
+
         K1i = self.sherWood(K2i, K3i@K1, i16)
         b1 = K1i @ b2
-        K0i = self.sherWood(K1i, K3i@K2i@K0, i16)
+
+        LHS = K1i @ LHS
+
+        #K0i = self.sherWood(K1i, K3i@K2i@K0, i16)
+                            # U, Vt, I
+        K0i = self.sherWood(K1i, K2i@K3i@K0, i16)
         b0 = K0i @ b1
 
+        #B1i = (i16 + inv( i16 + K3i@K2i ) @ K3i@K1)
+        #B0 = inv( i16 + K3i@K2i ) @ K3i@K0
+
+        B1i = i16 + K2i @ K3i @ K1
+        B0 = K2i @ K3i @ K0
+
+        finalB = self.sherWood(B1i, B0, i16) @ b1
+
+        #print(finalB.round(2))
+
+        LHS = K0i @ LHS
+
         print(b0.round(2))
+        #print(LHS.round(2))
+        print(x.round(2))
+
+        bf = (inv(K0) @ (inv(K1) @ (inv(K2) @ (inv(K3) @ b))))
+        #print(bf.round(2))
+
+        #print(b0.round(2))
 
         return b0
 

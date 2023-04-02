@@ -57,13 +57,13 @@ class Main:
         l = 3
         covMat = np.exp(-(covMat**2)/(l**2))
 
-        from testing import Test
+        '''from testing import Test
         t = Test()
-        covMat = t.returnmatrix()
+        covMat = t.returnmatrix()'''
 
         # build hodlr
-        approx = False
-        self.r = 16
+        approx = True
+        self.r = 8
         b = buildHodlr()
         hodlr, root, points = b.buildHodlr(self.k, self.r, covMat, approx)
         #hodlr.printTree(root)
@@ -77,7 +77,11 @@ class Main:
         #x = s.solveForX_bruteForce(len(covMat), b, root)
         y, Kli, update, next_update = s.solveForX(b, root, int(max_level))
 
-        ex = s.solveForX16(len(covMat), b, root, test, covMat)
+        print(y.round(2))
+        print(test.round(2))
+        print((test - y).round(2))
+
+        #ex = s.solveForX16(len(covMat), b, root, test, covMat)
 
         #print(test.round(2))
         #print(ex.round(2))
