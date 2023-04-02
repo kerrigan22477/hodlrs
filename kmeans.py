@@ -88,9 +88,10 @@ class Kmeans:
             '''
 
 
+
         # display animation
         #anim = camera.animate()
-        #plt.show()
+       # plt.show()
 
 
         return clusters, centroids

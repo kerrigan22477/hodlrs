@@ -25,15 +25,17 @@ class SolveForX:
             A = root.value
             U1, S1, VT1, U2, S2, VT2 = A[0], A[1], A[2], A[3], A[4], A[5]
 
-            #uR = (U1.dot(S1)).dot(VT1)
-            #lL= (U2.dot(S2)).dot(VT2)
-            upperRight = [U1, S1, VT1]
-            lowerLeft = [U2, S2, VT2]
+            uR = (U1.dot(S1)).dot(VT1)
+            lL= (U2.dot(S2)).dot(VT2)
+            #upperRight = [U1, S1, VT1]
+            #lowerLeft = [U2, S2, VT2]
 
             try:
-                self.Ks[level] = self.Ks[level] + [upperRight, lowerLeft]
+                #self.Ks[level] = self.Ks[level] + [upperRight, lowerLeft]
+                self.Ks[level] = self.Ks[level] + [uR, lL]
             except KeyError:
-                self.Ks[level] = [upperRight, lowerLeft]
+                #self.Ks[level] = [upperRight, lowerLeft]
+                self.Ks[level] = [uR, lL]
 
         else:
             full_matrix = root.value
@@ -55,13 +57,8 @@ class SolveForX:
         t = Tools()
         self.factor(root, 0)
 
+
         levels = self.Ks
-
-
-        '''
-        for x in range(len(levels[0])):
-            for i in range(3):
-                print((levels[0][x][i]).round(1))'''
 
         '''
         for i in range(len(levels)-1):
@@ -100,12 +97,15 @@ class SolveForX:
         K3 = t.buildBlock(K3_UL, z8, z8, K3_LR)
 
         # rebuild K2
-        K2_ms = self.undoSVD(2)
+        #K2_ms = self.undoSVD(2)
+        K2_ms = self.Ks[2]
 
-        a = t.buildBlock(i2, K2_ms[0], K2_ms[1], i2)
-        b = t.buildBlock(i2, K2_ms[2], K2_ms[3], i2)
-        c = t.buildBlock(i2, K2_ms[4], K2_ms[5], i2)
-        d = t.buildBlock(i2, K2_ms[6], K2_ms[7], i2)
+        # should be i's
+        use = z2
+        a = t.buildBlock(use, K2_ms[0], K2_ms[1], use)
+        b = t.buildBlock(use, K2_ms[2], K2_ms[3], use)
+        c = t.buildBlock(use, K2_ms[4], K2_ms[5], use)
+        d = t.buildBlock(use, K2_ms[6], K2_ms[7], use)
 
         K2_UL = t.buildBlock(a, z4, z4, b)
         K2_LR = t.buildBlock(c, z4, z4, d)
@@ -113,15 +113,17 @@ class SolveForX:
         K2 = t.buildBlock(K2_UL, z8, z8, K2_LR)
 
         #rebuild K1
-        K1_ms = self.undoSVD(1)
+        #K1_ms = self.undoSVD(1)
+        K1_ms = self.Ks[1]
 
-        a = t.buildBlock(i4, K1_ms[0], K1_ms[1], i4)
-        d = t.buildBlock(i4, K1_ms[2], K1_ms[3], i4)
+        # should be i's
+        a = t.buildBlock(z4, K1_ms[0], K1_ms[1], z4)
+        d = t.buildBlock(z4, K1_ms[2], K1_ms[3], z4)
 
         K1 = t.buildBlock(a, z8, z8, d)
 
         #rebuild K0
-        K0_ms = []
+        '''K0_ms = []
 
         U1 = self.Ks[0][0][0]
         S1 = self.Ks[0][0][1]
@@ -131,33 +133,52 @@ class SolveForX:
         U1 = self.Ks[0][1][0]
         S1 = self.Ks[0][1][1]
         VT1 = self.Ks[0][1][2]
-        K0_ms.append(U1.dot(S1).dot(VT1))
+        K0_ms.append(U1.dot(S1).dot(VT1))'''
 
-        K0 = t.buildBlock(i8, K0_ms[0], K0_ms[1], i8)
+        K0_ms = self.Ks[0]
 
-        '''
-        print(K3.round(1))
-        print(K2.round(1))
-        print(K1.round(1))
-        print(K0.round(1))
-        '''
-        K = (K3@K2@K1@K0)
+        # should be i's
+        K0 = t.buildBlock(z8, K0_ms[0], K0_ms[1], z8)
 
-        plt.matshow(K)
-        plt.show()
+        #plt.matshow(K0)
+        #plt.show()
+
+
+        #print(K3.round(1))
+        #print(K2.round(1))
+        #print(K1.round(1))
+        #print(K0.round(1))
+
+        K = (K3+K2+K1+K0)
+        #print(K.round(1))
+
+        #plt.matshow(K)
+        #plt.show()
 
         # Do maths
-        x = np.array([-372.00641187,  224.77515493 , -77.15161439 , 227.87207448, -309.25801318,
-  329.96835622,  143.92113187 ,-150.76826154,  142.3190304 , -200.70929676,
-   51.4164312 ,   60.72415455, -109.50084279 ,-110.46445274  , -5.28376826,
-  189.35892997])
+        x = np.array([-579.68564799,  520.63842807, -190.82583598,  170.68069913, -161.69745997,
+   65.3555604 ,  -72.7476185 ,  261.73045681 ,  33.85947749,  -77.48355648,
+   60.24764757, -124.92497873 ,  71.65899951 , -20.65095809 , 110.14746495,
+  -30.19240434])
         b = np.arange(len(K0))
+        K3i = inv(K3)
+        '''
+        K2i = self.sherWood(K3i, K2, i16)
+        K1i = self.sherWood(K2i, K3i @ K1, i16)
+        K0i = self.sherWood(K1i, K3i @ K2i @ K0, i16)'''
+        K2i = inv(K2)
+        K1i = inv(K1)
+        K0i = inv(K0)
+
         LHS = (K3+K2+K1+K0)@x
+        RHS = b
+
         #print('X: ' + str(x.round(2)))
-        #print(LHS.round(2))
+        print(LHS.round(2))
+        print(RHS.round(2))
        # print(b)
 
-        b0 = 0
+        b0 = K
 
         '''
         K3i = inv(K3)
@@ -246,5 +267,115 @@ class SolveForX:
 
             return self.x, K1i, next_update, next_update@K1i
 
+
+    def solveForX16(self, n, b, root, x, covMat):
+        t = Tools()
+        self.factor(root, 0)
+
+        levels = self.Ks
+
+        '''for x in range(len(levels[2])):
+            for i in range(len(levels[2][0])):
+                print((levels[2][x][i]).round(1))'''
+
+        z2 = np.zeros((2, 2))
+        z4 = np.zeros((4, 4))
+        z8 = np.zeros((8, 8))
+        i2 = np.identity(2)
+        i4 = np.identity(4)
+        i8 = np.identity(8)
+        i16 = np.identity(16)
+
+        # rebuild K3
+        a = t.buildBlock(levels[3][0], z2, z2, levels[3][1])
+        b = t.buildBlock(levels[3][2], z2, z2, levels[3][3])
+        c = t.buildBlock(levels[3][4], z2, z2, levels[3][5])
+        d = t.buildBlock(levels[3][6], z2, z2, levels[3][7])
+
+        K3_UL = t.buildBlock(a, z4, z4, b)
+        K3_LR = t.buildBlock(c, z4, z4, d)
+
+        K3 = t.buildBlock(K3_UL, z8, z8, K3_LR)
+
+        # rebuild K2
+        #K2_ms = self.undoSVD(2)
+        K2_ms = self.Ks[2]
+
+        a = t.buildBlock(z2, K2_ms[0], K2_ms[1], z2)
+        b = t.buildBlock(z2, K2_ms[2], K2_ms[3], z2)
+        c = t.buildBlock(z2, K2_ms[4], K2_ms[5], z2)
+        d = t.buildBlock(z2, K2_ms[6], K2_ms[7], z2)
+        '''a = t.buildBlock(i2, K2_ms[0], K2_ms[1], i2)
+        b = t.buildBlock(i2, K2_ms[2], K2_ms[3], i2)
+        c = t.buildBlock(i2, K2_ms[4], K2_ms[5], i2)
+        d = t.buildBlock(i2, K2_ms[6], K2_ms[7], i2)'''
+
+        K2_UL = t.buildBlock(a, z4, z4, b)
+        K2_LR = t.buildBlock(c, z4, z4, d)
+
+        K2 = t.buildBlock(K2_UL, z8, z8, K2_LR)
+
+        # rebuild K1
+        #K1_ms = self.undoSVD(1)
+        K1_ms = self.Ks[1]
+
+
+        '''a = t.buildBlock(i4, K1_ms[0], K1_ms[1], i4)
+        d = t.buildBlock(i4, K1_ms[2], K1_ms[3], i4)'''
+        a = t.buildBlock(z4, K1_ms[0], K1_ms[1], z4)
+        d = t.buildBlock(z4, K1_ms[2], K1_ms[3], z4)
+
+        K1 = t.buildBlock(a, z8, z8, d)
+
+        # rebuild K0
+        K0_ms = self.Ks[0]
+
+        '''K0 = t.buildBlock(i8, K0_ms[0], K0_ms[1], i8)'''
+        K0 = t.buildBlock(z8, K0_ms[0], K0_ms[1], z8)
+
+        K = (K3 + K2 + K1 + K0)
+        #K = (K3 + K2 + K1 + K0) - 3 * i16
+
+        '''print(K3.round(1))
+        print(K2.round(1))
+        print(K1.round(1))
+        print(K0.round(1))'''
+
+        print((K - covMat).round(1))
+        print(K.round(1))
+        print(covMat.round(1))
+
+        #plt.matshow(K)
+        #plt.show()
+
+        # Do maths
+        '''x = np.array([-372.00641187, 224.77515493, -77.15161439, 227.87207448, -309.25801318,
+                      329.96835622, 143.92113187, -150.76826154, 142.3190304, -200.70929676,
+                      51.4164312, 60.72415455, -109.50084279, -110.46445274, -5.28376826,
+                      189.35892997])
+
+        b = np.arange(len(K0))'''
+        print(x.round(2))
+        #LHS = (K3 + K2 + K1 + K0) @ x
+        LHS = K @ x
+        b = np.arange(len(K0))
+        # print('X: ' + str(x.round(2)))
+        print(LHS.round(2))
+        #print(b.round(2))
+
+        #print((covMat @ x).round(2))
+
+        K3i = inv(K3)
+        b3 = K3i @ b
+        K2i = self.sherWood(K3i, K2, i16)
+        b2 = K2i @ b3
+        K1i = self.sherWood(K2i, K3i@K1, i16)
+        b1 = K1i @ b2
+        K0i = self.sherWood(K1i, K3i@K2i@K0, i16)
+        b0 = K0i @ b1
+
+        print(b0.round(2))
+
+        return b0
 
 

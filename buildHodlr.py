@@ -9,7 +9,6 @@ from tools import Tools
 class buildHodlr:
     def __init__(self):
         self.clusters = []
-        self.data = []
         self.k = 0
         self.centroids = []
         self.r = 0
@@ -57,9 +56,9 @@ class buildHodlr:
         self._buildHodlr(bst, new_parent, A11, k, approx)
         self._buildHodlr(bst, new_parent, A22, k, approx)
 
-    def buildHodlr(self, data, k, r, covMat, approx):
+    def buildHodlr(self, k, r, covMat, approx):
         t = Tools()
-        self.data = data
+        #self.data = data
         self.k = k
         self.r = r
 
