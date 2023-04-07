@@ -16,7 +16,7 @@ class Main:
 
     def main(self):
 
-        s = 16
+        s = 64
         x1 = np.random.normal(loc=3.0, size=s)
         y1 = np.random.normal(loc=2.0, size=s)
         x2 = np.random.normal(loc=9.0, size=s)
@@ -41,15 +41,20 @@ class Main:
 
         # compute covariance matrix
         covMat = np.array(pairwise_distances(new_points, new_points))
-        l = 3
-        covMat = np.exp(-(covMat**2)/(l**2))
+        l = 1
+        covMat = np.exp(-(covMat**2)/(l**2)) + np.eye(covMat.shape[0]) * .01
 
         # build hodlr
-        approx = False
-        self.r = 8
+        approx = True
+        # shrink r as the matrix shrinks
+        self.r = 24
         b = buildHodlr()
         hodlr, root, points = b.buildHodlr(self.k, self.r, covMat, approx)
         #hodlr.printTree(root)
+
+        # profile for different size matrices and different sizes of R
+        # without R, should be cubic and n log n - double check with paper
+        # log t on x log n on y plots
 
         # solve For X
         np.set_printoptions(suppress=True)
@@ -63,9 +68,9 @@ class Main:
 
         print(y.round(2))
         print(test.round(2))
-        print(np.log(abs(test - y)).round(2))
+        print((test - y).round(2))
 
-        ex = s.solveForX16(len(covMat), b, root, test, covMat)
+        #ex = s.solveForX16(len(covMat), b, root, test, covMat)
 
         #print(test.round(2))
         #print(y.round(2))
