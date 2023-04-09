@@ -30,6 +30,14 @@ class buildHodlr:
         S2 = np.diag(S2)
 
         if approx:
+            '''r = int(len(U1) * self.r)
+            U1 = U1[:, :r]
+            S1 = S1[0:r, :r]
+            VT1 = VT1[:r, :]
+            U2 = U2[:, :r]
+            S2 = S2[0:r, :r]
+            VT2 = VT2[:r, :]
+            '''
             U1 = U1[:, :self.r]
             S1 = S1[0:self.r, :self.r]
             VT1 = VT1[:self.r, :]
@@ -74,6 +82,13 @@ class buildHodlr:
 
         if approx:
             # low rank approx
+            '''r = int(len(U1) * self.r)
+            U1 = U1[:, :r]
+            S1 = S1[0:r, :r]
+            VT1 = VT1[:r, :]
+            U2 = U2[:, :r]
+            S2 = S2[0:r, :r]
+            VT2 = VT2[:r, :]'''
             U1 = U1[:, :self.r]
             S1 = S1[0:self.r, :self.r]
             VT1 = VT1[:self.r, :]

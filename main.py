@@ -16,7 +16,7 @@ class Main:
 
     def main(self):
 
-        s = 64
+        s = 32
         x1 = np.random.normal(loc=3.0, size=s)
         y1 = np.random.normal(loc=2.0, size=s)
         x2 = np.random.normal(loc=9.0, size=s)
@@ -47,7 +47,8 @@ class Main:
         # build hodlr
         approx = True
         # shrink r as the matrix shrinks
-        self.r = 24
+        self.r = 16
+        #self.r = 0.5
         b = buildHodlr()
         hodlr, root, points = b.buildHodlr(self.k, self.r, covMat, approx)
         #hodlr.printTree(root)
