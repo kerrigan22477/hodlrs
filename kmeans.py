@@ -11,7 +11,6 @@ class Kmeans:
         self.data = []
         self.k = 0
 
-
     def update_centroids(self, clusters):
         # new centroid = mean of all its cluster's points
         # if a cluster has no data, replace it with a random data point

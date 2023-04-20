@@ -1,5 +1,4 @@
 import numpy as np
-from split import Split
 from BST import BST
 from BST import Node
 from BST import Leaf
@@ -7,37 +6,24 @@ from tools import Tools
 
 
 class buildHodlr:
-    def __init__(self):
-        self.clusters = []
-        self.k = 0
-        self.centroids = []
-        self.r = 0
-        self.finalPoints = []
+    def __init__(self, k, r):
+        self.k = k
+        self.r = r
 
-    def _buildHodlr(self, bst, parent, child, k, approx):
-        # if size of matrix is uneven, make even w/0s so it splits properly
+    def _buildHodlr(self, bst, parent, child, approx):
         t = Tools()
 
         # find svd of covariance matrix
-        s = Split()
-        A11, A12, A21, A22 = s.split(child)
+        A12, A21, A11, A22 = t.splitMatrix(child)
         U1, S1, VT1 = np.linalg.svd(A12)
         U2, S2, VT2 = np.linalg.svd(A21)
 
-        # low rank approximations
         # add back in 0s to sigma
         S1 = np.diag(S1)
         S2 = np.diag(S2)
 
+        # low rank approximations
         if approx:
-            '''r = int(len(U1) * self.r)
-            U1 = U1[:, :r]
-            S1 = S1[0:r, :r]
-            VT1 = VT1[:r, :]
-            U2 = U2[:, :r]
-            S2 = S2[0:r, :r]
-            VT2 = VT2[:r, :]
-            '''
             U1 = U1[:, :self.r]
             S1 = S1[0:self.r, :self.r]
             VT1 = VT1[:self.r, :]
@@ -53,26 +39,21 @@ class buildHodlr:
         else:
             bst.put(parent, new_parent, "right")
 
-        #if len(A11) < 2*self.k:
+        # stop dividing when matrix is 2x2
         if len(A11) <= 3:
             # put in final leaves
             bst.put(new_parent, Leaf(A11), "left")
             bst.put(new_parent, Leaf(A22), "right")
             return bst
 
-        # (self, bst, parent, child, c1_points, c2_points, k, approx)
-        self._buildHodlr(bst, new_parent, A11, k, approx)
-        self._buildHodlr(bst, new_parent, A22, k, approx)
+        self._buildHodlr(bst, new_parent, A11, approx)
+        self._buildHodlr(bst, new_parent, A22, approx)
 
-    def buildHodlr(self, k, r, covMat, approx):
+    def buildHodlr(self, covMat, approx):
         t = Tools()
-        #self.data = data
-        self.k = k
-        self.r = r
 
         # put in root
-        s = Split()
-        A11, A12, A21, A22 = s.split(covMat)
+        A12, A21, A11, A22 = t.splitMatrix(covMat)
         U1, S1, VT1 = np.linalg.svd(A12)
         U2, S2, VT2 = np.linalg.svd(A21)
 
@@ -82,13 +63,6 @@ class buildHodlr:
 
         if approx:
             # low rank approx
-            '''r = int(len(U1) * self.r)
-            U1 = U1[:, :r]
-            S1 = S1[0:r, :r]
-            VT1 = VT1[:r, :]
-            U2 = U2[:, :r]
-            S2 = S2[0:r, :r]
-            VT2 = VT2[:r, :]'''
             U1 = U1[:, :self.r]
             S1 = S1[0:self.r, :self.r]
             VT1 = VT1[:self.r, :]
@@ -101,11 +75,10 @@ class buildHodlr:
         bst = BST(root)
 
         # build recursively
-        self._buildHodlr(bst, root, A11, k, approx)
-        self._buildHodlr(bst, root, A22, k, approx)
-
+        self._buildHodlr(bst, root, A11, approx)
+        self._buildHodlr(bst, root, A22, approx)
 
         # return bst, root
-        return bst, root, self.finalPoints
+        return bst, root
 
 

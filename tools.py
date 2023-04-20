@@ -45,3 +45,16 @@ class Tools:
             [c, d]
         ])
         return block
+
+    def splitMatrix(self, A):
+        #split A vertically
+        list = np.split(A, 2)
+        #split a horizontally
+        tmp1 = np.hsplit(list[0], 2)
+        tmp2 = np.hsplit(list[1], 2)
+        A11 = tmp1[0]
+        A12 = tmp1[1]
+        A21 = tmp2[0]
+        A22 = tmp2[1]
+
+        return A12, A21, A11, A22
